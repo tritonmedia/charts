@@ -1,0 +1,96 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: media-media
+  labels:
+    app: media
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app:  media
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: media
+        release: {{ .Release.Name }}
+    spec:
+      volumes:
+        - name: media
+          persistentVolumeClaim:
+            claimName: media-pvc
+        - name: config
+          secret:
+            secretName: media-config
+
+      containers:
+        - name: twilight
+          image: "jaredallard/triton-twilight:{{ .Values.twilight.imageTag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: [ "/usr/bin/docker-entrypoint", "twilight" ]
+          env:
+            - name: NODE_ENV
+              value: {{ .Values.twilight.environment }}
+          volumeMounts:
+            - name: media
+              mountPath: "{{ .Values.storage.mountPath }}"
+            - name: config
+              mountPath: "/mnt/config"
+              readOnly: true
+          ports:
+            - name: http
+              containerPort: 8001
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8001
+            initialDelaySeconds: 60 # don't recreate until after 60s+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8001
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+
+        # Emby
+        - name: emby
+          image: "jaredallard/emby-server"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+           capabilities:
+             add:
+               - SYS_ADMIN
+          volumeMounts:
+            - name: media
+              mountPath: "{{ .Values.storage.mountPath }}"
+          ports:
+            - name: http
+              containerPort: 8096
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8096
+            initialDelaySeconds: 60 # don't recreate until after 60s+
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8096
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+    {{- with .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}

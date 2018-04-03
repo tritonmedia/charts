@@ -1,0 +1,59 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ template "converter.fullname" . }}
+  labels:
+    app: {{ template "converter.name" . }}
+    chart: {{ template "converter.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "converter.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "converter.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: NODE_ENV
+              value: {{ .Values.environment }}
+          volumeMounts:
+            - name: config
+              mountPath: "/mnt/config"
+              readOnly: true
+            - name: downloading
+              mountPath: "/mnt/downloading"
+            - name: transcoding
+              mountPath: "/mnt/transcoding"
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+    {{- with .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+
+      volumes:
+        - name: config
+          secret:
+            secretName: media-config
+        - name: downloading
+          emptyDir: {}
+        - name: transcoding
+          emptyDir: {}
