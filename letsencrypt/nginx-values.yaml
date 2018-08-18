@@ -3,8 +3,9 @@ rbac:
 
 defaultBackend:
   nodeSelector:
-    triton.role: storage
+    cloud.google.com/gke-nodepool: stable
 
 controller:
+  ingressClass: nginx
   nodeSelector:
-    triton.role: storage
+    cloud.google.com/gke-nodepool: stable

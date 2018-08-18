@@ -58,15 +58,15 @@ spec:
 
         # Emby
         - name: emby
-          image: "jaredallard/emby-server"
+          image: emby/embyserver
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          securityContext:
-           capabilities:
-             add:
-               - SYS_ADMIN
           volumeMounts:
             - name: media
-              mountPath: "{{ .Values.storage.mountPath }}"
+              subPath: emby
+              mountPath: /config
+            - name: media
+              subPath: production
+              mountPath: /mnt/media
           ports:
             - name: http
               containerPort: 8096
