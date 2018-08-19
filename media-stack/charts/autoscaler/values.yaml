@@ -1,0 +1,20 @@
+# Default values for beholder.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: jaredallard/triton-autoscaler
+  tag: alpha
+  pullPolicy: Always
+
+environment: 'debug'
+
+resources: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

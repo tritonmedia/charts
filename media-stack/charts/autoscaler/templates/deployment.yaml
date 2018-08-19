@@ -1,46 +1,40 @@
 apiVersion: apps/v1beta2
 kind: Deployment
 metadata:
-  name: {{ template "converter.fullname" . }}
+  name: {{ template "autoscaler.fullname" . }}
   labels:
-    app: {{ template "converter.name" . }}
-    chart: {{ template "converter.chart" . }}
+    app: {{ template "autoscaler.name" . }}
+    chart: {{ template "autoscaler.chart" . }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: {{ template "converter.name" . }}
+      app: {{ template "autoscaler.name" . }}
       release: {{ .Release.Name }}
   template:
     metadata:
       labels:
-        app: {{ template "converter.name" . }}
+        app: {{ template "autoscaler.name" . }}
         release: {{ .Release.Name }}
     spec:
+      serviceAccountName: autoscaler
+      volumes:
+        - name: config
+          secret:
+            secretName: media-config
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: [ "/usr/bin/docker-entrypoint", "autoscaler" ]
           env:
             - name: NODE_ENV
               value: {{ .Values.environment }}
-          ports:
-          - name: health
-            containerPort: 3401
           volumeMounts:
             - name: config
               mountPath: "/mnt/config"
-              readOnly: true
-            - name: downloading
-              mountPath: "/mnt/downloading"
-            - name: transcoding
-              mountPath: "/mnt/transcoding"
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: 3401
           resources:
 {{ toYaml .Values.resources | indent 12 }}
     {{- with .Values.nodeSelector }}
@@ -55,12 +49,3 @@ spec:
       tolerations:
 {{ toYaml . | indent 8 }}
     {{- end }}
-
-      volumes:
-        - name: config
-          secret:
-            secretName: media-config
-        - name: downloading
-          emptyDir: {}
-        - name: transcoding
-          emptyDir: {}
