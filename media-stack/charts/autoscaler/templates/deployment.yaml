@@ -25,6 +25,7 @@ spec:
           secret:
             secretName: media-config
       containers:
+{{include "includeJaegerContainer" . | indent 8 }}
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}

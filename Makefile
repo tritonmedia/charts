@@ -8,3 +8,8 @@ update-config: get-credentials
 	@echo "===> Updating config.yaml fron ./config.yaml <==="
 	@kubectl delete secret media-config || true
 	@kubectl create secret generic media-config --from-file="config.yaml=config.yaml"
+
+.PHONY: update-environment
+update-environment: get-credentials
+	@echo "===> Updating environment <==="
+	@helm upgrade -f ./media-stack/values.production.yaml triton ./media-stack 

@@ -19,19 +19,89 @@ spec:
         release: {{ .Release.Name }}
     spec:
       volumes:
-        - name: media
-          persistentVolumeClaim:
-            claimName: media-pvc
-        - name: config
-          secret:
-            secretName: media-config
+      # Legacy storage
+      - name: media
+        persistentVolumeClaim:
+          claimName: media-pvc
 
+      # Secrets
+      - name: google-creds
+        secret:
+          secretName: s3-mounter
+      - name: config
+        secret:
+          defaultMode: 420
+          secretName: media-config
+
+      # Host mounts
+      - name: media-v2
+        hostPath: 
+          path: /tmp/media-v2
+          type: DirectoryOrCreate
+      - name: fuse
+        hostPath:
+          path: /dev/fuse
+
+      # Temp Dirs
+      - name: transcoding
+        emptyDir: {}
       containers:
+{{include "includeJaegerContainer" . | indent 8 }}
+        - name: plex
+          image: linuxserver/plex
+          imagePullPolicy: Always
+          env:
+          - name: TZ
+            value: America/Los_Angeles
+          - name: VERSION
+            value: latest
+          - name: PUID
+            value: "1000"
+          - name: PGID
+            value: "1000"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8096
+              scheme: HTTP
+            initialDelaySeconds: 60
+          ports:
+          - containerPort: 32400
+            name: plex-http
+            protocol: TCP
+          - containerPort: 32400
+            name: plex-http-udp
+            protocol: UDP
+          - containerPort: 32469
+            protocol: TCP
+          - containerPort: 32469
+            protocol: UDP
+          - containerPort: 5353
+            protocol: UDP
+          - containerPort: 1900
+            protocol: UDP
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8096
+              scheme: HTTP
+          resources: {}
+          volumeMounts:
+          - mountPath: /config
+            name: media
+            subPath: plex
+          - mountPath: /data
+            name: media
+            subPath: production
+          - mountPath: /transcoding
+            name: transcoding
         - name: twilight
           image: "jaredallard/triton-twilight:{{ .Values.twilight.imageTag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command: [ "/usr/bin/docker-entrypoint", "twilight" ]
           env:
+            - name: MINIO
+              value: "http://gcs-proxy:9000"
             - name: NODE_ENV
               value: {{ .Values.twilight.environment }}
           volumeMounts:
@@ -56,11 +126,39 @@ spec:
           resources:
 {{ toYaml .Values.resources | indent 12 }}
 
+        # s3-mounter
+        - name: s3-mounter
+          image: jaredallard/triton-s3-mounter
+          imagePullPolicy: Always
+          securityContext:
+            runAsNonRoot: false
+            runAsUser: 0
+            privileged: true
+          env:
+          - name: MOUNT_DIR
+            value: /mnt/media-v2/mnt
+          - name: BUCKET_NAME
+            value: triton-media
+          volumeMounts:
+          - name: fuse
+            mountPath: /dev/fuse
+          - name: media-v2
+            mountPath: /mnt/media-v2:shared
+          - name: google-creds
+            mountPath: "/mnt/google-creds"
+            readOnly: true
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+
         # Emby
         - name: emby
-          image: emby/embyserver
+          image: jellyfin/jellyfin
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           volumeMounts:
+            - name: media-v2
+              mountPath: /mnt/media-v2:slave
             - name: media
               subPath: emby
               mountPath: /config
