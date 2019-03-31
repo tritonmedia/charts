@@ -1,0 +1,9 @@
+# Persistence off because GCS
+persistence:
+  enabled: false
+
+# Enable GCS
+gcsgateway:
+  enabled: true
+  gcsKeyJson: ''
+  projectId: 'triton-ops'

@@ -19,10 +19,10 @@ spec:
         release: {{ .Release.Name }}
     spec:
       volumes:
-      # Legacy storage
-      - name: media
+      - name: media-config
         persistentVolumeClaim:
-          claimName: media-pvc
+          claimName: media-config
+
 
       # Secrets
       - name: google-creds
@@ -56,9 +56,9 @@ spec:
           - name: VERSION
             value: latest
           - name: PUID
-            value: "1000"
+            value: "999"
           - name: PGID
-            value: "1000"
+            value: "999"
           livenessProbe:
             httpGet:
               path: /
@@ -87,29 +87,26 @@ spec:
               scheme: HTTP
           resources: {}
           volumeMounts:
-          - mountPath: /config
-            name: media
+          - name: media-config
+            mountPath: /config
             subPath: plex
-          - mountPath: /data
-            name: media
-            subPath: production
-          - mountPath: /transcoding
-            name: transcoding
+          - name: media-v2
+            mountPath: /data:slave
+          - name: transcoding
+            mountPath: /transcoding
         - name: twilight
           image: "jaredallard/triton-twilight:{{ .Values.twilight.imageTag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command: [ "/usr/bin/docker-entrypoint", "twilight" ]
           env:
-            - name: MINIO
-              value: "http://gcs-proxy:9000"
-            - name: NODE_ENV
-              value: {{ .Values.twilight.environment }}
+          - name: MINIO
+            value: "http://gcs-proxy:9000"
+          - name: NODE_ENV
+            value: {{ .Values.twilight.environment }}
           volumeMounts:
-            - name: media
-              mountPath: "{{ .Values.storage.mountPath }}"
-            - name: config
-              mountPath: "/mnt/config"
-              readOnly: true
+          - name: config
+            mountPath: "/mnt/config"
+            readOnly: true
           ports:
             - name: http
               containerPort: 8001
@@ -157,18 +154,15 @@ spec:
           image: jellyfin/jellyfin
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           volumeMounts:
-            - name: media-v2
-              mountPath: /mnt/media-v2:slave
-            - name: media
-              subPath: emby
-              mountPath: /config
-            - name: media
-              subPath: production
-              mountPath: /mnt/media
+          - name: media-v2
+            mountPath: /mnt/media-v2:slave
+          - name: media-config
+            subPath: emby
+            mountPath: /config
           ports:
-            - name: http
-              containerPort: 8096
-              protocol: TCP
+          - name: http
+            containerPort: 8096
+            protocol: TCP
           livenessProbe:
             httpGet:
               path: /

@@ -17,7 +17,6 @@ spec:
             serviceName: events
             servicePort: 80
           path: /
-
     - host: {{ $endpoints.deploy }}
       http:
         paths:
@@ -25,18 +24,24 @@ spec:
             serviceName: deploy
             servicePort: 80
           path: /
-
     - host: {{ $endpoints.media }}
       http:
         paths:
         - backend:
             serviceName: emby
-            servicePort: 80
+            servicePort: http
           path: /
-
+    - host: {{ $endpoints.plex }}
+      http:
+        paths:
+        - backend:
+            serviceName: plex
+            servicePort: http
+          path: /
   tls:
     - hosts:
       - {{ $endpoints.events }}
       - {{ $endpoints.deploy }}
       - {{ $endpoints.media }}
+      - {{ $endpoints.plex }}
       secretName: app-tritonjs-com-tls

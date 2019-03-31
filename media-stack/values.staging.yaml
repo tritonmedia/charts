@@ -4,6 +4,7 @@ global:
     events: app.staging.tritonjs.com
     media:  media.staging.tritonjs.com
     deploy: deploy.staging.tritonjs.com
+    plex: plex.tritonjs.com
 
 # Redis configuration
 redis:
