@@ -13,6 +13,10 @@ rules:
   resources:
   - deployments
   verbs: ["get", "list", "watch", "post", "patch"]
+- apiGroups: ["tritonjs.com"]
+  resources:
+  - autoscalerwatchers
+  verbs: ["get", "list", "watch"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: RoleBinding
