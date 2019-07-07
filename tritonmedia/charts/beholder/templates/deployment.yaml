@@ -30,11 +30,13 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command: [ "/usr/bin/docker-entrypoint", "beholder" ]
           env:
-            - name: NODE_ENV
-              value: {{ .Values.environment }}
+          - name: POSTGRES
+            value: "triton-postgres"
+          - name: CONFIG_ENV
+            value: {{ .Values.environment }}
           volumeMounts:
-            - name: config
-              mountPath: "/mnt/config"
+          - name: config
+            mountPath: "/mnt/config"
           resources:
 {{ toYaml .Values.resources | indent 12 }}
     {{- with .Values.nodeSelector }}
