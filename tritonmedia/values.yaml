@@ -1,0 +1,73 @@
+# Production Config
+global:
+  endpoints:
+    events: app.tritonjs.com
+    media:  media.tritonjs.com
+    deploy: deploy.tritonjs.com
+    plex: plex.tritonjs.com
+
+# RabbitMQ configurations
+rabbitmq:
+  persistence:
+    enabled: true
+  metrics:
+    enabled: true
+  serviceMonitor:
+    # TODO: enable this in the future
+    enabled: false
+
+postgres:
+  postgresqlDatabase: media
+  postgresqlPassword: ''
+  extraEnv:
+    - name: ALLOW_EMPTY_PASSWORD
+      value: "yes"
+  persistence:
+    enabled: true
+  metrics:
+    enabled: true
+  serviceMonitor:
+    enabled: false
+
+events:
+  replicaCount: 1
+  environment: production
+  image:
+    tag: prod
+
+
+beholder:
+  environment: production
+  image:
+    tag: prod
+
+twilight:
+  environment: production
+  image:
+    tag: prod
+
+downloader:
+  environment: production
+  image:
+    tag: prod
+  
+
+media:
+  twilight:
+    environment: production
+  image:
+    tag: prod
+
+converter:
+  environment: production
+  image:
+    tag: prod
+  resources:
+    requests:
+      cpu: 5
+      memory: 4Gi
+
+autoscaler:
+  environment: production
+  image:
+    tag: prod

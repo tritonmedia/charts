@@ -1,3 +1,4 @@
 secrets
 config.yaml
 values.minio.yaml
+**/charts/*.tgz

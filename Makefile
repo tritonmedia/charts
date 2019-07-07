@@ -13,4 +13,4 @@ update-config: get-credentials
 .PHONY: update-environment
 update-environment: get-credentials
 	@echo "===> Updating environment <==="
-	@helm upgrade -f ./media-stack/values.production.yaml triton ./media-stack 
+	@helm upgrade -f ./tritonmedia/values.production.yaml triton ./tritonmedia 

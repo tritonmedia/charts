@@ -1,0 +1,159 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: media-media
+  labels:
+    app: media
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app:  media
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: media
+        release: {{ .Release.Name }}
+    spec:
+      volumes:
+      - name: media-config
+        persistentVolumeClaim:
+          claimName: media-config
+
+
+      # Secrets
+      - name: google-creds
+        secret:
+          secretName: s3-mounter
+      - name: config
+        secret:
+          defaultMode: 420
+          secretName: media-config
+
+      # Host mounts
+      - name: media-v2
+        hostPath: 
+          path: /tmp/media-v2
+          type: DirectoryOrCreate
+      - name: fuse
+        hostPath:
+          path: /dev/fuse
+
+      # Temp Dirs
+      - name: transcoding
+        emptyDir: {}
+      containers:
+{{include "includeJaegerContainer" . | indent 8 }}
+        - name: plex
+          image: linuxserver/plex
+          imagePullPolicy: Always
+          env:
+          - name: TZ
+            value: America/Los_Angeles
+          - name: VERSION
+            value: latest
+          - name: PUID
+            value: "999"
+          - name: PGID
+            value: "999"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8096
+              scheme: HTTP
+            initialDelaySeconds: 60
+          ports:
+          - containerPort: 32400
+            name: plex-http
+            protocol: TCP
+          - containerPort: 32400
+            name: plex-http-udp
+            protocol: UDP
+          - containerPort: 32469
+            protocol: TCP
+          - containerPort: 32469
+            protocol: UDP
+          - containerPort: 5353
+            protocol: UDP
+          - containerPort: 1900
+            protocol: UDP
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8096
+              scheme: HTTP
+          resources: {}
+          volumeMounts:
+          - name: media-config
+            mountPath: /config
+            subPath: plex
+          - name: media-v2
+            mountPath: /data:slave
+          - name: transcoding
+            mountPath: /transcoding
+        # s3-mounter
+        - name: s3-mounter
+          image: jaredallard/triton-s3-mounter
+          imagePullPolicy: Always
+          securityContext:
+            runAsNonRoot: false
+            runAsUser: 0
+            privileged: true
+          env:
+          - name: MOUNT_DIR
+            value: /mnt/media-v2/mnt
+          - name: BUCKET_NAME
+            value: triton-media
+          volumeMounts:
+          - name: fuse
+            mountPath: /dev/fuse
+          - name: media-v2
+            mountPath: /mnt/media-v2:shared
+          - name: google-creds
+            mountPath: "/mnt/google-creds"
+            readOnly: true
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+
+        # Emby
+        - name: emby
+          image: jellyfin/jellyfin:10.3.6
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          volumeMounts:
+          - name: media-v2
+            mountPath: /mnt/media-v2:slave
+          - name: media-config
+            subPath: emby
+            mountPath: /config
+          ports:
+          - name: http
+            containerPort: 8096
+            protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8096
+            initialDelaySeconds: 60 # don't recreate until after 60s+
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8096
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+    {{- with .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}
