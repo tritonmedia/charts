@@ -25,10 +25,12 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
-            - name: NODE_ENV
-              value: {{ .Values.environment }}
-            - name: MINIO
-              value: "http://gcs-proxy:9000"
+          - name: POSTGRES
+            value: "triton-postgres"
+          - name: NODE_ENV
+            value: {{ .Values.environment }}
+          - name: MINIO
+            value: "http://gcs-proxy:9000"
           ports:
           - name: health
             containerPort: 3401
