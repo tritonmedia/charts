@@ -1,7 +1,6 @@
 apiVersion: extensions/v1beta1
 kind: Ingress
-
-{{- $endpoints := .Values.global.endpoints }}
+{{- $endpoints := .Values.global.endpoints | default list }}
 metadata:
   name: services
   annotations:
@@ -14,34 +13,26 @@ spec:
       http:
         paths:
         - backend:
-            serviceName: events
-            servicePort: 80
-          path: /
-    - host: {{ $endpoints.deploy }}
-      http:
-        paths:
-        - backend:
-            serviceName: deploy
+            serviceName: {{ include "service.fullname" (dict "Name" "events" "Global" .) }}
             servicePort: 80
           path: /
     - host: {{ $endpoints.media }}
       http:
         paths:
         - backend:
-            serviceName: emby
+            serviceName: {{ include "service.fullname" (dict "Name" "jellyfin" "Global" .) }}
             servicePort: http
           path: /
     - host: {{ $endpoints.plex }}
       http:
         paths:
         - backend:
-            serviceName: plex
+            serviceName: {{ include "service.fullname" (dict "Name" "plex" "Global" .) }}
             servicePort: http
           path: /
   tls:
-    - hosts:
-      - {{ $endpoints.events }}
-      - {{ $endpoints.deploy }}
-      - {{ $endpoints.media }}
-      - {{ $endpoints.plex }}
-      secretName: app-tritonjs-com-tls
+  - hosts:
+    - {{ $endpoints.events }}
+    - {{ $endpoints.media }}
+    - {{ $endpoints.plex }}
+    secretName: app-tritonjs-com-tls

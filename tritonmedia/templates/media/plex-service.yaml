@@ -1,0 +1,23 @@
+{{- $name       := "plex" }}
+{{- $fullname   := include "service.fullname" (dict "Name" $name "Global" .) }}
+{{- $config     := index (default .Values.config dict) $name | default dict }}
+{{- $plexConfig := $config.plex | default dict }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $fullname }}
+  labels:
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ .Chart.Name }}{{ "-" }}{{ .Chart.Version }}
+    app.kubernetes.io/name: {{ $name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  type: {{ $plexConfig.serviceType }}
+  ports:
+  - port: {{ $plexConfig.servicePort }}
+    targetPort: plex-http
+    protocol: TCP
+    name: http
+  selector:
+    app.kubernetes.io/name: centers
+    app.kubernetes.io/instance: {{ .Release.Name }}

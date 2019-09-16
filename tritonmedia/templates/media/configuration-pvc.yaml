@@ -1,0 +1,21 @@
+{{- $name       := "centers" }}
+{{- $fullname   := include "service.fullname" (dict "Name" $name "Global" .) }}
+{{- $config     := index (default .Values.config dict) $name | default dict }}
+{{- $jfConfig   := $config.jellyfin | default dict }}
+{{- $plexConfig := $config.plex | default dict }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: media-config
+  labels:
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ .Chart.Name }}{{ "-" }}{{ .Chart.Version }}
+    app.kubernetes.io/name: {{ $name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: standard
+  resources:
+    requests:
+      storage: 10Gi
