@@ -1,9 +1,9 @@
 dependencies:
 - name: rabbitmq
   repository: '@stable'
-  version: 6.1.1
+  version: ^6.1.1
   alias: rabbitmq
 - name: postgresql
   repository: '@stable'
-  version: 5.3.10
+  version: ^5.3.10
   alias: postgres
