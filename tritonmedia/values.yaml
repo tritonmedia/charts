@@ -1,73 +1,63 @@
-# Production Config
-global:
-  endpoints:
-    events: app.tritonjs.com
-    media:  media.tritonjs.com
-    deploy: deploy.tritonjs.com
-    plex: plex.tritonjs.com
+# Endpoint Configuration
+endpoints: {}
 
-# RabbitMQ configurations
-rabbitmq:
-  persistence:
-    enabled: true
-  metrics:
-    enabled: true
-  serviceMonitor:
-    # TODO: enable this in the future
-    enabled: false
+# Service level Configuration
+config: {}
 
-postgres:
-  postgresqlDatabase: media
-  postgresqlPassword: ''
-  extraEnv:
-    - name: ALLOW_EMPTY_PASSWORD
-      value: "yes"
-  persistence:
-    enabled: true
-  metrics:
-    enabled: true
-  serviceMonitor:
-    enabled: false
+# Service level manifest generation configuration
+services:
+  autoscaler:
+    useServiceAccount: true
 
-events:
-  replicaCount: 1
-  environment: production
-  image:
-    tag: prod
+  beholder: {}
 
+  converter:
+    livenessProbe: false
+    ports:
+    - name: http
+      containerPort: 3401
+    volumes:
+    - name: downloading
+      emptyDir: {}
+    - name: transcoding
+      emptyDir: {}
+    volumeMounts:
+    - name: downloading
+      mountPath: "/mnt/downloading"
+    - name: transcoding
+      mountPath: "/mnt/transcoding"
 
-beholder:
-  environment: production
-  image:
-    tag: prod
+  downloader:
+    livenessProbe: false
+    ports:
+    - name: http
+      containerPort: 3401
+    volumes:
+    - name: downloading
+      emptyDir: {}
+    volumeMounts:
+    - name: downloading
+      mountPath: "/mnt/downloading"
 
-twilight:
-  environment: production
-  image:
-    tag: prod
+  events:
+    readinessProbePath: /v1/health
+    livenessProbePath: /v1/health
+    ports:
+    - port: 80
+      containerPort: 3401
+      protocol: TCP
+      name: webhook
 
-downloader:
-  environment: production
-  image:
-    tag: prod
-  
+  identifier:
+    readinessProbe: false
+    command: ["identifier"]
 
-media:
   twilight:
-    environment: production
-  image:
-    tag: prod
-
-converter:
-  environment: production
-  image:
-    tag: prod
-  resources:
-    requests:
-      cpu: 5
-      memory: 4Gi
-
-autoscaler:
-  environment: production
-  image:
-    tag: prod
+    readinessProbe: false
+    livenessProbe: false
+    ports:
+    - name: http
+      containerPort: 8001
+      port: 80
+      protocol: TCP
+    command: ["twilight"]

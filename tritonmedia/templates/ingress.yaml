@@ -1,6 +1,6 @@
 apiVersion: extensions/v1beta1
 kind: Ingress
-{{- $endpoints := .Values.global.endpoints | default list }}
+{{- $endpoints := .Values.endpoints | default dict }}
 metadata:
   name: services
   annotations:

@@ -14,7 +14,7 @@ metadata:
 spec:
   type: {{ $plexConfig.serviceType }}
   ports:
-  - port: {{ $plexConfig.servicePort }}
+  - port: {{ $plexConfig.servicePort | default 80 }}
     targetPort: plex-http
     protocol: TCP
     name: http

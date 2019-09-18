@@ -14,7 +14,7 @@ metadata:
 spec:
   type: {{ $jfConfig.serviceType }}
   ports:
-  - port: {{ $jfConfig.servicePort }}
+  - port: {{ $jfConfig.servicePort | default 80 }}
     targetPort: 8096
     protocol: TCP
     name: http

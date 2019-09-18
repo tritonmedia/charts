@@ -1,0 +1,36 @@
+{{- $global := . }}
+{{- range $name, $serviceConfig := .Values.services }}
+{{- if $serviceConfig.ports }}
+{{- $fullname := include "service.fullname" (dict "Name" $name "Global" $global) }}
+{{- $config  := default (index (default $global.Values.config dict) $name) dict }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $fullname }}
+  labels:
+    app.kubernetes.io/managed-by: {{ $global.Release.Service }}
+    helm.sh/chart: {{ $global.Chart.Name }}{{ "-" }}{{ $global.Chart.Version }}
+    app.kubernetes.io/name: {{ $name }}
+    app.kubernetes.io/instance: {{ $global.Release.Name }}
+spec:
+  type: ClusterIP
+  ports:
+  {{- range $port := $serviceConfig.ports }}
+  - port: {{ $port.port | default $port.containerPort }}
+    {{- /* We use the name here because we know that it's set in the deployment */}}
+    targetPort: {{ $port.name }}
+    protocol: {{ $port.protocol | default "TCP" }}
+    {{- if ne $port.name "" }}
+    name: {{ $port.name }}
+    {{- end }}
+  {{- end }}
+  selector:
+    app.kubernetes.io/name: {{ $name }}
+    app.kubernetes.io/instance: {{ $global.Release.Name }}
+{{- with $config.serviceExternalIps }}
+  externalIps:
+{{ toYaml . | indent 4 }}
+{{- end }}
+{{- end }}
+{{- end }}
