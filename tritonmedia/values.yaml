@@ -2,7 +2,56 @@
 endpoints: {}
 
 # Service level Configuration
-config: {}
+config:
+  converter:
+    settings:
+      # These directly map to handlebars configuration options
+      video:
+        codec: 'x264'
+        profile: 'high'
+        preset: 'veryfast'
+        tune: 'animation'
+        quality: 16
+      audio:
+        codec: 'copy:flac'
+        fallback: 'flac16'
+        mixdown: 'dpl2'
+      subtitles:
+        codec: 'copy'
+        strip_pictures: true
+
+# S3 Configuration
+# Set the endpoint in endpoints.s3Endpoint
+s3:
+  accessKey: ''
+  secretKey: ''
+
+# Telegram Configuration
+telegram:
+  enabled: false
+  # Telegram bot token
+  token: ''
+  # Channel to send new media notifications too
+  channel: ''
+
+# Trello Configuration
+trello:
+  enabled: false
+  boardID: ''
+  token: ''
+  key: ''
+  flow_ids:
+    requests: ''
+    ready: ''
+    downloading: ''
+    converting: ''
+    uploading: ''
+    deployed: ''
+    errored: ''
+  labels:
+    metadata: ''
+    error: ''
+    movie: ''
 
 # Infrastructure
 rabbitmq:

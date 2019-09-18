@@ -66,6 +66,20 @@ Parameter | Description | Default
 `config[microservice].imageTag` | Image tag to use | `prod`
 `config[microservice].imageRepository` | Image repos to use | `jaredallard/triton-$name`
 `config[microservice].imagePullPolicy` | Image Pull Policy | `IfNotPresent`
+`config.converter.settings.video` | Video converting options | `{}`
+`config.converter.settings.audio` | Audio converting options | `{}`
+`config.converter.settings.subtitles` | Subtitle converting options | `{}`
+`s3.accessKey` | Access Key for S3 | `''`
+`s3.secretKey` | Secret Key for S3 | `''`
+`trello.enabled` | Enable Trello Integration | `false`
+`trello.token` | Token to Access Trello | `''`
+`trello.key` | Key to Access Trello | `''`
+`trello.flow_ids` | Map of flow_ids to trello lists | `{}`
+`trello.labels` | Map of internal label names to ids | `{}`
+`trello.boardID` | ID of the board to use | `{}`
+`telegram.enabled` | Enable telegram notifications | `false`
+`telegram.token` | Token to use to connect to telegram | `''`
+`telegram.channel` | Channel to send Telegram notifications to | `''`
 `postgres` | Postgres Configuration | `{}`
 `rabbitmq` | RabbitMQ Configuration | `{}`
 
