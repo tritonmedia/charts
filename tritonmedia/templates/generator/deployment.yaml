@@ -14,7 +14,7 @@ metadata:
     app.kubernetes.io/name: {{ $name }}
     app.kubernetes.io/instance: {{ $global.Release.Name }}
 spec:
-  replicas: {{ $config.replicas }}
+  replicas: {{ $config.replicas | default 1 }}
   selector:
     matchLabels:
       app.kubernetes.io/name: {{ $name }}

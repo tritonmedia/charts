@@ -1,6 +1,6 @@
 # tritonmedia Helm Chart
 
-[Tritonmedia](https://github.com/tritonmedia/triton) is an open source media processing pipeline and media center
+[Triton](https://github.com/tritonmedia/triton) is an open source media processing pipeline and media center
 
 ## TL;DR;
 
@@ -57,7 +57,7 @@ Parameter | Description | Default
 --------- | ----------- | -------
 `endpoints.plex` | Endpoint to expose plex | ``
 `endpoints.jellyfin` | Endpoint to expose jellyfin | ``
-`endpoints.events` | Endpoint to expose triton's api gateway | `true`
+`endpoints.events` | Endpoint to expose triton's api gateway | ``
 `config[microservice].replicas` | Number of replicas for this microservice | `1`
 `config[microservice].nodeSelector` | Node Selector for this microservice | `{}`
 `config[microservice].resources` | Resources for this microservice | `{}`

@@ -4,6 +4,18 @@ endpoints: {}
 # Service level Configuration
 config: {}
 
+# Infrastructure
+rabbitmq:
+  persistence:
+    enabled: true
+postgres:
+  postgresqlDatabase: media
+  postgresqlPassword: ''
+  extraEnv:
+  - name: ALLOW_EMPTY_PASSWORD
+    value: "yes"
+  persistence:
+    enabled: true
 # Service level manifest generation configuration
 services:
   autoscaler:
