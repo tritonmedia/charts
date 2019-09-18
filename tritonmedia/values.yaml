@@ -16,6 +16,7 @@ postgres:
     value: "yes"
   persistence:
     enabled: true
+
 # Service level manifest generation configuration
 services:
   autoscaler:
