@@ -16,7 +16,7 @@ spec:
             serviceName: {{ include "service.fullname" (dict "Name" "events" "Global" .) }}
             servicePort: 80
           path: /
-    - host: {{ $endpoints.media }}
+    - host: {{ $endpoints.jellyfin }}
       http:
         paths:
         - backend:
@@ -33,6 +33,6 @@ spec:
   tls:
   - hosts:
     - {{ $endpoints.events }}
-    - {{ $endpoints.media }}
+    - {{ $endpoints.jellyfin }}
     - {{ $endpoints.plex }}
     secretName: app-tritonjs-com-tls

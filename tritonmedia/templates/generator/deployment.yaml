@@ -36,7 +36,7 @@ spec:
       containers:
         - name: {{ $name }}
           image: {{ $config.imageRepository | default $defaultImageRepository }}{{ ":" }}{{ $config.imageTag | default "prod" }}
-          imagePullPolicy: {{ $config.imagePullPolicy }}
+          imagePullPolicy: {{ $config.imagePullPolicy | default "IfNotPresent" }}
           command: {{ $config.command | default (list "/usr/bin/docker-entrypoint" $name) }}
           env:
           {{- $postgres := include "service.fullname" (dict "Name" "postgres" "Global" $global) }}
