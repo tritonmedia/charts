@@ -58,17 +58,17 @@ Parameter | Description | Default
 `endpoints.plex` | Endpoint to expose plex | ``
 `endpoints.jellyfin` | Endpoint to expose jellyfin | ``
 `endpoints.events` | Endpoint to expose triton's api gateway | ``
-`config[microservice].replicas` | Number of replicas for this microservice | `1`
-`config[microservice].nodeSelector` | Node Selector for this microservice | `{}`
-`config[microservice].resources` | Resources for this microservice | `{}`
-`config[microservice].tolerations` | Tolerations for this microservice | `[]`
-`config[microservice].environment` | Deprecated field to control `NODE_ENV` | `production`
-`config[microservice].imageTag` | Image tag to use | `prod`
-`config[microservice].imageRepository` | Image repos to use | `jaredallard/triton-$name`
-`config[microservice].imagePullPolicy` | Image Pull Policy | `IfNotPresent`
-`config.converter.settings.video` | Video converting options | `{}`
-`config.converter.settings.audio` | Audio converting options | `{}`
-`config.converter.settings.subtitles` | Subtitle converting options | `{}`
+`services[microservice].replicas` | Number of replicas for this microservice | `1`
+`services[microservice].nodeSelector` | Node Selector for this microservice | `{}`
+`services[microservice].resources` | Resources for this microservice | `{}`
+`services[microservice].tolerations` | Tolerations for this microservice | `[]`
+`services[microservice].environment` | Deprecated field to control `NODE_ENV` | `production`
+`services[microservice].imageTag` | Image tag to use | `prod`
+`services[microservice].imageRepository` | Image repos to use | `jaredallard/triton-$name`
+`services[microservice].imagePullPolicy` | Image Pull Policy | `IfNotPresent`
+`services.converter.settings.video` | Video converting options | `{}`
+`services.converter.settings.audio` | Audio converting options | `{}`
+`services.converter.settings.subtitles` | Subtitle converting options | `{}`
 `s3.accessKey` | Access Key for S3 | `''`
 `s3.secretKey` | Secret Key for S3 | `''`
 `trello.enabled` | Enable Trello Integration | `false`
@@ -97,3 +97,13 @@ $ helm install . --name my-release -f values.yaml
 ```
 
 > **Tip**: You can use the default [values.yaml](values.yaml)
+
+## Troubleshooting
+
+### RabbitMQ Authentication Issues
+
+For some reason the chart doesn't actually bootstrap RabbitMQ properly. Shell into the pod and change the password to the expected default.
+
+```bash
+$ kubectl exec -it triton-rabbitmq-0 sh -- -c "rabbitmqctl change_password user bitnami"
+```

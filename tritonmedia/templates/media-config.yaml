@@ -44,7 +44,7 @@ production:
 
       # See hanbrakejs options
       settings:
-      {{- toYaml . | nindent 8 }}
+      {{- toYaml .services.converter.settings | nindent 8 }}
     events:
       telegram:
         enabled: {{ .telegram.enabled }}

@@ -1,5 +1,9 @@
 # Endpoint Configuration
-endpoints: {}
+endpoints:
+  s3Endpoint: http://triton-minio.default:9000
+  events: app.example.com
+  jellyfin: media.example.com
+  plex: plex.example.com
 
 # Service level Configuration
 config:
@@ -23,8 +27,8 @@ config:
 # S3 Configuration
 # Set the endpoint in endpoints.s3Endpoint
 s3:
-  accessKey: ''
-  secretKey: ''
+  accessKey: AKIAIOSFODNN7EXAMPLE
+  secretKey: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
 
 # Telegram Configuration
 telegram:
@@ -55,8 +59,12 @@ trello:
 
 # Infrastructure
 rabbitmq:
+  rabbitmq:
+    username: user
+    password: bitnami
   persistence:
     enabled: true
+
 postgres:
   postgresqlDatabase: media
   postgresqlPassword: ''
@@ -66,6 +74,13 @@ postgres:
   persistence:
     enabled: true
 
+minio:
+  existingSecret: s3-credentials
+  buckets:
+  - name: triton-media
+    policy: none
+    purge: false
+
 # Service level manifest generation configuration
 services:
   autoscaler:
@@ -74,6 +89,7 @@ services:
   beholder: {}
 
   converter:
+    settings: {}
     livenessProbe: false
     ports:
     - name: http
@@ -111,10 +127,12 @@ services:
       name: webhook
 
   identifier:
+    imageTag: latest
     readinessProbe: false
     command: ["identifier"]
 
   twilight:
+    imageRepository: jaredallard/triton-twilight
     readinessProbe: false
     livenessProbe: false
     ports:

@@ -19,6 +19,8 @@ spec:
       app.kubernetes.io/name: {{ $name }}
       app.kubernetes.io/instance: {{ .Release.Name }}
   template:
+    strategy:
+      type: Recreate
     metadata:
       labels:
         app.kubernetes.io/name: {{ $name }}
@@ -28,10 +30,6 @@ spec:
       - name: service-configs
         persistentVolumeClaim:
           claimName: media-config
-      # Secrets
-      - name: gcs-creds
-        secret:
-          secretName: gcs-creds
       - name: triton-config
         secret:
           defaultMode: 420
@@ -92,16 +90,17 @@ spec:
           resources:
 {{ toYaml $plexConfig.resources | indent 12 }}
           volumeMounts:
-          - name: media-config
+          - name: service-configs
             mountPath: /config
             subPath: plex
           - name: media-v2
-            mountPath: /data:slave
+            mountPath: /data
+            mountPropagation: HostToContainer
           - name: transcoding
             mountPath: /transcoding
         # s3-mounter
         - name: s3-mounter
-          image: jaredallard/triton-s3-mounter
+          image: jaredallard/triton-s3-mounter:v2
           imagePullPolicy: Always
           securityContext:
             runAsNonRoot: false
@@ -109,16 +108,30 @@ spec:
             privileged: true
           env:
           - name: MOUNT_DIR
-            value: /mnt/media-v2/mnt
+            value: /mnt/mdedia-v2/mnt
           - name: BUCKET_NAME
             value: triton-media
+          - name: S3_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: s3-credentials
+                key: accesskey
+          - name: S3_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: s3-credentials
+                key: secretkey
+          - name: S3_ENDPOINT
+            valueFrom:
+              secretKeyRef:
+                name: s3-credentials
+                key: endpoint
           volumeMounts:
           - name: fuse
             mountPath: /dev/fuse
           - name: media-v2
-            mountPath: /mnt/media-v2:shared
-          - name: google-creds
-            mountPath: "/mnt/google-creds"
+            mountPath: /mnt/media-v2
+            mountPropagation: Bidirectional
             readOnly: true
           resources:
             requests:
@@ -130,8 +143,9 @@ spec:
           imagePullPolicy: {{ $jfConfig.imagePullPolicy }}
           volumeMounts:
           - name: media-v2
-            mountPath: /mnt/media-v2:slave
-          - name: media-config
+            mountPath: /mnt/media-v2
+            mountPropagation: HostToContainer
+          - name: service-configs
             subPath: emby
             mountPath: /config
           ports:

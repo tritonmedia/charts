@@ -2,7 +2,6 @@
 {{- range $name, $serviceConfig := .Values.services }}
 {{- $fullname := include "service.fullname" (dict "Name" $name "Global" $global) }}
 {{- $defaultImageRepository := printf "%s%s" "jaredallard/triton-" ($serviceConfig.imageName | default $name) }}
-{{- $config  := default (index (default $global.Values.config dict) $name) dict }}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -14,7 +13,7 @@ metadata:
     app.kubernetes.io/name: {{ $name }}
     app.kubernetes.io/instance: {{ $global.Release.Name }}
 spec:
-  replicas: {{ $config.replicas | default 1 }}
+  replicas: {{ $serviceConfig.replicas | default 1 }}
   selector:
     matchLabels:
       app.kubernetes.io/name: {{ $name }}
@@ -35,25 +34,22 @@ spec:
       {{- end }}
       containers:
         - name: {{ $name }}
-          image: {{ $config.imageRepository | default $defaultImageRepository }}{{ ":" }}{{ $config.imageTag | default "prod" }}
-          imagePullPolicy: {{ $config.imagePullPolicy | default "IfNotPresent" }}
-          command: {{ $config.command | default (list "/usr/bin/docker-entrypoint" $name) }}
+          image: {{ $serviceConfig.imageRepository | default $defaultImageRepository }}{{ ":" }}{{ $serviceConfig.imageTag | default "prod" }}
+          imagePullPolicy: {{ $serviceConfig.imagePullPolicy | default "IfNotPresent" }}
+          {{- if eq (typeOf $serviceConfig.command) "[]interface {}" }}
+          command: {{ $serviceConfig.command | toJson }}
+          {{- else }}
+          command: {{ default (list "/usr/bin/docker-entrypoint" $name) | toJson }}
+          {{- end }}
           env:
           {{- $postgres := include "service.fullname" (dict "Name" "postgres" "Global" $global) }}
           {{- $rabbitmq := include "service.fullname" (dict "Name" "rabbitmq" "Global" $global) }}
-          {{- $s3       := $global.Values.endpoints.s3Endpoint | default (printf "http://%s:9000" (include "service.fullname" (dict "Name" "minio" "Global" $global))) }}
           - name: NODE_ENV
-            value: {{ $config.environment | default "production" }}
-          - name: S3_ENDPOINT
-            value: {{ $s3 }}
+            value: {{ $serviceConfig.environment | default "production" }}
           {{- if ne (toString $global.Values.trello.enabled) "true" }}
           - name: NO_TRELLO
             value: '1'
           {{- end }}
-          - name: S3_ACCESS_KEY
-            value: {{ $global.Values.s3.accessKey }}
-          - name: S3_SECRET_KEY
-            value: {{ $global.Values.s3.secretKey }}
           {{- /* DEPRECATED */}}
           - name: POSTGRES
             value: {{ $postgres }}
@@ -62,23 +58,44 @@ spec:
             value: {{ $postgres }}
           - name: POSTGRES_ENDPOINT
             value: {{ $postgres }}
+          {{- /* DEPRECATED */}}
+          - name: IDENTIFIER_RABBITMQ_ENDPOINT
+            value: amqp://user:bitnami@{{ $rabbitmq }}
           - name: RABBITMQ
-            value: {{ $rabbitmq }}
+            value: amqp://user:bitnami@{{ $rabbitmq }}
           {{- /* DEPRECATED */}}
           - name: MINIO
-            value: {{ $rabbitmq }}
+            valueFrom:
+              secretKeyRef:
+                name: s3-credentials
+                key: endpoint
+          - name: S3_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: s3-credentials
+                key: accesskey
+          - name: S3_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: s3-credentials
+                key: secretkey
+          - name: S3_ENDPOINT
+            valueFrom:
+              secretKeyRef:
+                name: s3-credentials
+                key: endpoint
           {{- if (and (ne (toString $serviceConfig.livenessProbe) "false") (ne (len ($serviceConfig.ports | default list)) 0)) }}
           livenessProbe:
             httpGet:
               path: {{ $serviceConfig.livenessProbePath | default "/health" }}
-              port: {{ $serviceConfig.livenessProbePort | default "http" }}
+              port: {{ $serviceConfig.livenessProbePort | default (index $serviceConfig.ports 0).containerPort }}
             initialDelaySeconds: 60 # don't recreate until after 60s+
           {{- end }}
           {{- if (and (ne (toString $serviceConfig.readinessProbe) "false") (ne (len ($serviceConfig.ports | default list)) 0)) }}
           readinessProbe:
             httpGet:
               path: {{ $serviceConfig.readinessProbePath | default "/health" }}
-              port: {{ $serviceConfig.readinessProbePort | default "http" }}
+              port: {{ $serviceConfig.readinessProbePort | default (index $serviceConfig.ports 0).containerPort }}
           {{- end }}
           volumeMounts:
           {{- include "triton.includeConfigMount" . | nindent 10 }}
@@ -95,16 +112,16 @@ spec:
           {{- end }}
           {{- end }}
           resources:
-            {{- toYaml $config.resources | nindent 12 }}
-    {{- with $config.nodeSelector }}
+            {{- toYaml $serviceConfig.resources | nindent 12 }}
+    {{- with $serviceConfig.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
     {{- end }}
-    {{- with $config.affinity }}
+    {{- with $serviceConfig.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
     {{- end }}
-    {{- with $config.tolerations }}
+    {{- with $serviceConfig.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
     {{- end }}

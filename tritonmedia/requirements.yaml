@@ -7,3 +7,7 @@ dependencies:
   repository: '@stable'
   version: ^5.3.10
   alias: postgres
+- name: minio
+  repository: '@stable'
+  version: ^2.5.14
+  alias: minio
