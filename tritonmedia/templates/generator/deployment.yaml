@@ -56,13 +56,25 @@ spec:
           {{- /* DEPRECATED */}}
           - name: IDENTIFIER_POSTGRES_ENDPOINT
             value: {{ $postgres }}
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: triton-postgres
+                key: postgresql-password
           - name: POSTGRES_ENDPOINT
             value: {{ $postgres }}
           {{- /* DEPRECATED */}}
           - name: IDENTIFIER_RABBITMQ_ENDPOINT
-            value: amqp://user:bitnami@{{ $rabbitmq }}
+            value: {{ $rabbitmq }}
           - name: RABBITMQ
-            value: amqp://user:bitnami@{{ $rabbitmq }}
+            value: {{ $rabbitmq }}
+          - name: RABBITMQ_USERNAME
+            value: user
+          - name: RABBITMQ_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: triton-rabbitmq
+                key: rabbitmq-password
           {{- /* DEPRECATED */}}
           - name: MINIO
             valueFrom:

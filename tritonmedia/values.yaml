@@ -59,15 +59,11 @@ trello:
 
 # Infrastructure
 rabbitmq:
-  rabbitmq:
-    username: user
-    password: bitnami
   persistence:
     enabled: true
 
 postgres:
   postgresqlDatabase: media
-  postgresqlPassword: ''
   extraEnv:
   - name: ALLOW_EMPTY_PASSWORD
     value: "yes"
@@ -90,6 +86,7 @@ services:
 
   converter:
     settings: {}
+    readinessProbe: false
     livenessProbe: false
     ports:
     - name: http
@@ -106,6 +103,7 @@ services:
       mountPath: "/mnt/transcoding"
 
   downloader:
+    readinessProbe: false
     livenessProbe: false
     ports:
     - name: http
@@ -129,10 +127,12 @@ services:
   identifier:
     imageTag: latest
     readinessProbe: false
+    livenessProbe: false
     command: ["identifier"]
 
   twilight:
-    imageRepository: jaredallard/triton-twilight
+    imageRepository: jaredallard/triton-twilight-go
+    imageTag: latest
     readinessProbe: false
     livenessProbe: false
     ports:
