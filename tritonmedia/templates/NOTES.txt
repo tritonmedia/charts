@@ -1,1 +1,24 @@
-TODO
+{{- $endpoints := .Values.endpoints | default dict }}
+Triton has been succesfully installed!
+
+A few quick notes:
+
+ * It's normal for triton-converter and triton-downloader to be unready, 
+   that means they aren't currently processing any jobs
+ * Triton doesn't provide an ingress controller or any monitoring by default
+   you may want to install something like nginx-ingress, cert-manager, and etc.
+
+Ok! Now that that's out of the way, you can access Triton at the following locations:
+
+ * API: {{ $endpoints.events }} (API key is in the triton-events logs, or in postgres)
+ * Jellyfin: {{ $endpoints.jellyfin }}
+ * Plex: {{ $endpoints.plex }}
+
+Do these not look like what you'd expect? Then update the endpoints.NAME value to change these,
+be sure to update your DNS to target your ingress controller's IP to access these.
+
+Alternatively, you can can port forward each of these with the following commands:
+
+ * Jellyfin: kubectl port-forward deployment/triton-centers 8096 (access at: http://127.0.0.1:8096)
+ * API: kubectl port-forward deployment/triton-events 3401 (access at: http://127.0.0.1:3401)
+ * Plex: kubectl port-forward deployment/triton-centers 32400 (access at: http://127.0.0.1:32400)
