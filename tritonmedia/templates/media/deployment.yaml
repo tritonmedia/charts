@@ -36,7 +36,7 @@ spec:
           secretName: media-config
 
       # Host mounts
-      - name: media-v2
+      - name: media
         emptyDir: {}
       - name: fuse
         hostPath:
@@ -89,8 +89,8 @@ spec:
           - name: service-configs
             mountPath: /config
             subPath: plex
-          - name: media-v2
-            mountPath: /data
+          - name: media
+            mountPath: /data/media
           - name: transcoding
             mountPath: /transcoding
         # s3-mounter
@@ -102,8 +102,14 @@ spec:
             runAsUser: 0
             privileged: true
           env:
+{{- if .Values.s3.useCache }}
+          - name: GOOFYS_CACHE_ENABLED
+            value: "true"
+          - name: GOOFYS_CHEAP
+            value: "true"
+{{- end }}
           - name: MOUNT_DIR
-            value: /mnt/media-v2
+            value: /data/media
           - name: BUCKET_NAME
             value: triton-media
           - name: S3_ACCESS_KEY
@@ -124,20 +130,27 @@ spec:
           volumeMounts:
           - name: fuse
             mountPath: /dev/fuse
-          - name: media-v2
+          - name: media
             mountPropagation: Bidirectional
-            mountPath: /mnt/media-v2
+            mountPath: /data/media
           resources:
             requests:
               cpu: 100m
               memory: 256Mi
         # Jellyfin
         - name: jellyfin
-          image: jellyfin/jellyfin:10.3.7
+          image: linuxserver/jellyfin
           imagePullPolicy: {{ $jfConfig.imagePullPolicy }}
+          env:
+          - name: TZ
+            value: America/Los_Angeles
+          - name: PUID
+            value: "999"
+          - name: PGID
+            value: "999"
           volumeMounts:
-          - name: media-v2
-            mountPath: /mnt/media-v2
+          - name: media
+            mountPath: /data/media
           - name: service-configs
             subPath: emby
             mountPath: /config

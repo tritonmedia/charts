@@ -14,6 +14,10 @@ ingress:
 # S3 Configuration
 # Set the endpoint in endpoints.s3Endpoint
 s3:
+  # When enabled, catfs will be used with goofys to reduce the amount of calls to s3
+  # also goofys will be placed in cheap mode which will reduce performance but reduce
+  # the number of s3 calls
+  useCache: true
   accessKey: AKIAIOSFODNN7EXAMPLE
   secretKey: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
 
