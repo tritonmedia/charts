@@ -3,10 +3,10 @@ kind: Ingress
 {{- $endpoints := .Values.endpoints | default dict }}
 metadata:
   name: services
+  {{- with .Values.ingress.annotations }}
   annotations:
-    kubernetes.io/tls-acme: "true"
-    certmanager.k8s.io/cluster-issuer: "letsencrypt-prod"
-    kubernetes.io/ingress.class: nginx
+  {{ toYaml . | nindent 2 }}
+  {{- end }}
 spec:
   rules:
     - host: {{ $endpoints.events }}
@@ -14,7 +14,7 @@ spec:
         paths:
         - backend:
             serviceName: {{ include "service.fullname" (dict "Name" "events" "Global" .) }}
-            servicePort: 80
+            servicePort: http
           path: /
     - host: {{ $endpoints.jellyfin }}
       http:
@@ -30,9 +30,12 @@ spec:
             serviceName: {{ include "service.fullname" (dict "Name" "plex" "Global" .) }}
             servicePort: http
           path: /
+
+{{- if eq (toString .Values.ingress.tlsEnabled) "true" }}
   tls:
   - hosts:
     - {{ $endpoints.events }}
     - {{ $endpoints.jellyfin }}
     - {{ $endpoints.plex }}
-    secretName: app-tritonjs-com-tls
+    secretName: {{ .Values.ingress.tlsSecret }}
+{{- end }}

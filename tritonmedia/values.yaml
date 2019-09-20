@@ -5,6 +5,12 @@ endpoints:
   jellyfin: media.example.com
   plex: plex.example.com
 
+# Ingress Configuration
+ingress:
+  tlsEnabled: false
+  tlsSecret: triton
+  annotations: {}
+
 # S3 Configuration
 # Set the endpoint in endpoints.s3Endpoint
 s3:
@@ -115,7 +121,7 @@ services:
     - port: 80
       containerPort: 3401
       protocol: TCP
-      name: webhook
+      name: http
 
   identifier:
     imageTag: latest
