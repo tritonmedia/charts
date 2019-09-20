@@ -37,9 +37,7 @@ spec:
 
       # Host mounts
       - name: media-v2
-        hostPath: 
-          path: /tmp/media-v2
-          type: DirectoryOrCreate
+        emptyDir: {}
       - name: fuse
         hostPath:
           path: /dev/fuse
@@ -93,7 +91,6 @@ spec:
             subPath: plex
           - name: media-v2
             mountPath: /data
-            mountPropagation: HostToContainer
           - name: transcoding
             mountPath: /transcoding
         # s3-mounter
@@ -106,7 +103,7 @@ spec:
             privileged: true
           env:
           - name: MOUNT_DIR
-            value: /mnt/mdedia-v2/mnt
+            value: /mnt/media-v2
           - name: BUCKET_NAME
             value: triton-media
           - name: S3_ACCESS_KEY
@@ -128,9 +125,8 @@ spec:
           - name: fuse
             mountPath: /dev/fuse
           - name: media-v2
+            mountPropagation: Bidirectional
             mountPath: /mnt/media-v2
-            mountPropagation: HostToContainer
-            readOnly: true
           resources:
             requests:
               cpu: 100m
@@ -142,7 +138,6 @@ spec:
           volumeMounts:
           - name: media-v2
             mountPath: /mnt/media-v2
-            mountPropagation: HostToContainer
           - name: service-configs
             subPath: emby
             mountPath: /config
