@@ -1,6 +1,6 @@
 {{- $name       := "plex" }}
 {{- $fullname   := include "service.fullname" (dict "Name" $name "Global" .) }}
-{{- $config     := index (default .Values.config dict) $name | default dict }}
+{{- $config     := index  .Values.services $name | default dict }}
 {{- $plexConfig := $config.plex | default dict }}
 apiVersion: v1
 kind: Service

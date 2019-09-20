@@ -5,25 +5,6 @@ endpoints:
   jellyfin: media.example.com
   plex: plex.example.com
 
-# Service level Configuration
-config:
-  converter:
-    settings:
-      # These directly map to handlebars configuration options
-      video:
-        codec: 'x264'
-        profile: 'high'
-        preset: 'veryfast'
-        tune: 'animation'
-        quality: 16
-      audio:
-        codec: 'copy:flac'
-        fallback: 'flac16'
-        mixdown: 'dpl2'
-      subtitles:
-        codec: 'copy'
-        strip_pictures: true
-
 # S3 Configuration
 # Set the endpoint in endpoints.s3Endpoint
 s3:
@@ -77,7 +58,7 @@ minio:
     policy: none
     purge: false
 
-# Service level manifest generation configuration
+# Service level manifest generation configuration and configuration
 services:
   autoscaler:
     useServiceAccount: true
@@ -85,12 +66,25 @@ services:
   beholder: {}
 
   converter:
-    settings: {}
-    readinessProbe: false
-    livenessProbe: false
+    # These directly map to handlebars configuration options
+    settings:
+      video:
+        codec: 'x264'
+        profile: 'high'
+        preset: 'veryfast'
+        tune: 'animation'
+        quality: 16
+      audio:
+        codec: 'copy:flac'
+        fallback: 'flac16'
+        mixdown: 'dpl2'
+      subtitles:
+        codec: 'copy'
+        strip_pictures: true
     ports:
     - name: http
       containerPort: 3401
+    livenessProbe: false
     volumes:
     - name: downloading
       emptyDir: {}
@@ -103,7 +97,6 @@ services:
       mountPath: "/mnt/transcoding"
 
   downloader:
-    readinessProbe: false
     livenessProbe: false
     ports:
     - name: http

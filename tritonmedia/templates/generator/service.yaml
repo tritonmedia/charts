@@ -2,7 +2,6 @@
 {{- range $name, $serviceConfig := .Values.services }}
 {{- if $serviceConfig.ports }}
 {{- $fullname := include "service.fullname" (dict "Name" $name "Global" $global) }}
-{{- $config  := default (index (default $global.Values.config dict) $name) dict }}
 ---
 apiVersion: v1
 kind: Service
@@ -28,7 +27,7 @@ spec:
   selector:
     app.kubernetes.io/name: {{ $name }}
     app.kubernetes.io/instance: {{ $global.Release.Name }}
-{{- with $config.serviceExternalIps }}
+{{- with $serviceConfig.serviceExternalIps }}
   externalIps:
 {{ toYaml . | indent 4 }}
 {{- end }}

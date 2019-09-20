@@ -1,6 +1,6 @@
 {{- $name     := "autoscaler" }}
 {{- $fullname := include "service.fullname" (dict "Name" $name "Global" .) }}
-{{- $config  := default (index (default .Values.config dict) $name) dict }}
+{{- $config  := default (index (default .Values.services dict) $name) dict }}
 apiVersion: v1
 kind: ServiceAccount
 metadata:

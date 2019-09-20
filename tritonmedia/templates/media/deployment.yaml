@@ -1,6 +1,6 @@
 {{- $name       := "centers" }}
 {{- $fullname   := include "service.fullname" (dict "Name" $name "Global" .) }}
-{{- $config     := index (default .Values.config dict) $name | default dict }}
+{{- $config     := index  .Values.services $name | default dict }}
 {{- $jfConfig   := $config.jellyfin | default dict }}
 {{- $plexConfig := $config.plex | default dict }}
 apiVersion: apps/v1
@@ -14,13 +14,13 @@ metadata:
     app.kubernetes.io/instance: {{ .Release.Name }}
 spec:
   replicas: {{ $config.replicas }}
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app.kubernetes.io/name: {{ $name }}
       app.kubernetes.io/instance: {{ .Release.Name }}
   template:
-    strategy:
-      type: Recreate
     metadata:
       labels:
         app.kubernetes.io/name: {{ $name }}
@@ -55,8 +55,6 @@ spec:
           env:
           - name: TZ
             value: America/Los_Angeles
-          - name: VERSION
-            value: latest
           - name: PUID
             value: "999"
           - name: PGID
@@ -131,7 +129,7 @@ spec:
             mountPath: /dev/fuse
           - name: media-v2
             mountPath: /mnt/media-v2
-            mountPropagation: Bidirectional
+            mountPropagation: HostToContainer
             readOnly: true
           resources:
             requests:

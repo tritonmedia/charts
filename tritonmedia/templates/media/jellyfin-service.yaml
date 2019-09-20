@@ -1,6 +1,6 @@
 {{- $name       := "jellyfin" }}
 {{- $fullname   := include "service.fullname" (dict "Name" $name "Global" .) }}
-{{- $config     := index (default .Values.config dict) $name | default dict }}
+{{- $config     := index  .Values.services $name | default dict }}
 {{- $jfConfig   := $config.jellyfin | default dict }}
 apiVersion: v1
 kind: Service
